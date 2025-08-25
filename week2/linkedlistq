@@ -1,0 +1,162 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Node structure
+typedef struct Node {
+    int data;
+    struct Node* next;
+} Node;
+
+// Queue structure
+typedef struct Queue {
+    Node* front;
+    Node* rear;
+} Queue;
+
+// Initialize the queue
+void initQueue(Queue* q) {
+    q->front = q->rear = NULL;
+}
+
+// Create a new node
+Node* createNode(int data) {
+    Node* newNode = (Node*) malloc(sizeof(Node));
+    if (!newNode) {
+        printf("Memory allocation failed\n");
+        return NULL;
+    }
+    newNode->data = data;
+    newNode->next = NULL;
+    return newNode;
+}
+
+// Insert (enqueue)
+void insert(Queue* q, int data) {
+    Node* newNode = createNode(data);
+    if (!newNode) return;
+    if (q->rear == NULL) {  // empty queue
+        q->front = q->rear = newNode;
+    } else {
+        q->rear->next = newNode;
+        q->rear = newNode;
+    }
+}
+
+// Delete (dequeue)
+int delete(Queue* q) {
+    if (q->front == NULL) {
+        printf("Queue is empty\n");
+        return -1;  // error code
+    }
+    Node* temp = q->front;
+    int data = temp->data;
+    q->front = q->front->next;
+    if (q->front == NULL)  // If queue becomes empty
+        q->rear = NULL;
+    free(temp);
+    return data;
+}
+
+// Peek front element
+int peek(Queue* q) {
+    if (q->front == NULL) {
+        printf("Queue is empty\n");
+        return -1;
+    }
+    return q->front->data;
+}
+
+// Pop (same as delete here)
+int pop(Queue* q) {
+    return delete(q);
+}
+
+// Switch keys - swap nodes containing key1 and key2
+void switchKeys(Queue* q, int key1, int key2) {
+    if (key1 == key2) {
+        printf("Keys are the same; no switch needed.\n");
+        return;
+    }
+
+    Node *prevX = NULL, *currX = q->front;
+    Node *prevY = NULL, *currY = q->front;
+
+    // Find node with key1
+    while (currX && currX->data != key1) {
+        prevX = currX;
+        currX = currX->next;
+    }
+    // Find node with key2
+    while (currY && currY->data != key2) {
+        prevY = currY;
+        currY = currY->next;
+    }
+
+    if (!currX || !currY) {
+        printf("One or both keys not found.\n");
+        return;
+    }
+
+    // If key1 not head, update prevX->next
+    if (prevX)
+        prevX->next = currY;
+    else
+        q->front = currY;
+
+    // If key2 not head, update prevY->next
+    if (prevY)
+        prevY->next = currX;
+    else
+        q->front = currX;
+
+    // Swap next pointers
+    Node* temp = currY->next;
+    currY->next = currX->next;
+    currX->next = temp;
+
+    // Update rear if needed
+    if (currX->next == NULL) q->rear = currX;
+    if (currY->next == NULL) q->rear = currY;
+}
+
+// Print queue
+void printQueue(Queue* q) {
+    Node* temp = q->front;
+    while (temp) {
+        printf("%d -> ", temp->data);
+        temp = temp->next;
+    }
+    printf("NULL\n");
+}
+
+// Main to test the queue
+int main() {
+    Queue q;
+    initQueue(&q);
+
+    insert(&q, 1);
+    insert(&q, 2);
+    insert(&q, 3);
+    insert(&q, 4);
+    insert(&q, 5);
+
+    printf("Queue: ");
+    printQueue(&q);
+
+    printf("Peek: %d\n", peek(&q));
+
+    printf("Pop: %d\n", pop(&q));
+    printf("Queue after pop: ");
+    printQueue(&q);
+
+    printf("Delete: %d\n", delete(&q));
+    printf("Queue after delete: ");
+    printQueue(&q);
+
+    printf("Switch keys 3 and 5\n");
+    switchKeys(&q, 3, 5);
+    printf("Queue after switch: ");
+    printQueue(&q);
+
+    return 0;
+}
